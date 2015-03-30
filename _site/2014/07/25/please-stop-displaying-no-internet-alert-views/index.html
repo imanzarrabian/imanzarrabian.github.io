@@ -1,0 +1,48 @@
+<p>One of the things you still see a lot in iOS apps is the “No Internet” popups displayed whenever an outgoing request fails because network is not reachable anymore. This is poor UX!</p>
+
+<p>Reachability is a global matter that should be handled asynchronously. When network is not reachable your app should go in a limited mode, avoiding any request that will collapse even before it is started. In the mean time users should be warned that Internet is not available anymore.</p>
+
+<p>When working with <a href="https://github.com/AFNetworking/AFNetworking">AFNetworking</a> just set the reachability status change block when you instantiate your API Client:</p>
+
+<div class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span class="p">[[</span><span class="n">AFNetworkReachabilityManager</span> <span class="n">sharedManager</span><span class="p">]</span> <span class="nl">setReachabilityStatusChangeBlock</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="n">AFNetworkReachabilityStatus</span> <span class="n">status</span><span class="p">)</span> <span class="p">{</span>
+            <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Reachability: %@&quot;</span><span class="p">,</span> <span class="n">AFStringFromNetworkReachabilityStatus</span><span class="p">(</span><span class="n">status</span><span class="p">));</span>
+            <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
+                <span class="p">[[</span><span class="bp">NSNotificationCenter</span> <span class="n">defaultCenter</span><span class="p">]</span> <span class="nl">postNotificationName</span><span class="p">:</span><span class="n">SKYReachabilityChangedNotification</span> <span class="nl">object</span><span class="p">:</span><span class="nb">nil</span> <span class="nl">userInfo</span><span class="p">:</span><span class="l">@{</span><span class="s">@&quot;status&quot;</span><span class="o">:</span> <span class="l">@(</span><span class="n">status</span><span class="l">)}</span><span class="p">];</span>
+            <span class="p">});</span>
+<span class="p">}];</span></code></pre></div>
+
+<p>I like to work with notifications when reachability is concerned because all my view controllers can be observers for this notification and respond to it with the proper UI in their own context.</p>
+
+<p>The observers of this SKYReachabilityChangedNotification are responsible for toggling on and off the “No Internet” UI based on the reachability changes (Alert Views are Evil, please don’t use them).
+These same observers can also disable any send button, display placeholders if needed, handle offline data, stop further outgoing requests or do anything that you need to do whenever Internet is not available.</p>
+
+<p><img src="http://planning.omts.fr/SugarFree/nointernetconnection.png" alt="Some UI" class="center-image" /></p>
+
+<p>Now that your app is set for responding to reachability changes with a more subtle UI the only thing left is to silence errors of any pending requests that started before network has dropped. Remember that these are the only requests that need to be taking care of because your view controllers won’t allow any other request to start if Internet is no longer available.</p>
+
+<p>Again I like to let the view controllers decide what is the right way of displaying an applicative error and the only thing that should be centralized is to silence the “No Internet” error on a per request basis.
+It can be done using a class method (defined in whatever utility class you want) available to all your controllers. Call this method on all your request failure completions and pass in the error you get and a display block.</p>
+
+<div class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span class="p">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">handleError:</span><span class="p">(</span><span class="bp">NSError</span> <span class="o">*</span><span class="p">)</span><span class="nv">error</span> <span class="nf">withDisplayBlock:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)())</span><span class="nv">displayBlock</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">([</span><span class="n">error</span><span class="p">.</span><span class="n">domain</span> <span class="nl">isEqualToString</span><span class="p">:</span><span class="n">NSURLErrorDomain</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">error</span><span class="p">.</span><span class="n">code</span> <span class="o">==</span> <span class="n">NSURLErrorNotConnectedToInternet</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Internet availability error =&gt; Silenced&quot;</span><span class="p">);</span>
+     <span class="p">}</span>
+     <span class="k">else</span> <span class="p">{</span>
+         <span class="k">if</span> <span class="p">(</span><span class="n">displayBlock</span><span class="p">)</span> <span class="p">{</span>
+             <span class="c1">//Always run the display block in the UI queue</span>
+             <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
+                 <span class="n">displayBlock</span><span class="p">();</span>
+             <span class="p">});</span>
+         <span class="p">}</span>
+     <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+<p>This method analyzes the error and if it’s not a reachability error executes whatever display block is passed in. Otherwise it does nothing and you’ll have to trust the asynchronous mechanism you put in place earlier to display Internet reachability errors to the users.</p>
+
+<p>If you liked this post, you can
+<a href="https://twitter.com/intent/tweet?url=http://imanzarrabian.github.io/2014/07/25/please-stop-displaying-no-internet-alert-views/&amp;text=Please Stop Displaying No Internet Alert Views&amp;via=imanzarrabian" target="_blank">
+  share it on Twitter</a>
+or just
+<a href="https://twitter.com/imanzarrabian">
+  follow me</a>!</p>
+

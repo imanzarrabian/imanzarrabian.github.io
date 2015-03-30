@@ -1,0 +1,24 @@
+# Permalinks
+permalink:        pretty
+relative_permalinks: true
+
+# Setup
+title:            Cocoa Sugar Free
+url:              http://imanzarrabian.github.io
+paginate:         1
+baseurl:          /
+author:
+  name:           Iman Zarrabian
+  url:            https://twitter.com/imanzarrabian
+
+# Custom vars
+version:          1.0.0
+github:
+  repo:           https://github.com/imanzarrabian
+
+pages_list:
+  Archive: '/archive'
+  Feed: '/atom.xml'
+
+twitter_username: imanzarrabian
+github_username:  imanzarrabian
