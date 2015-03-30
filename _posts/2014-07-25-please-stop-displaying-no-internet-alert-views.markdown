@@ -2,7 +2,7 @@
 layout: post
 title:  "Please stop displaying "No Internet" Alert Views!"
 ---
-One of the things you still see a lot in iOS apps is the "No Internet" popups displayed whenever an outgoing request fails because network is not reachable anymore. This is poor UX!
+Iman : One of the things you still see a lot in iOS apps is the "No Internet" popups displayed whenever an outgoing request fails because network is not reachable anymore. This is poor UX!
 
 Reachability is a global matter that should be handled asynchronously. When network is not reachable your app should go in a limited mode, avoiding any request that will collapse even before it is started. In the mean time users should be warned that Internet is not available anymore.
 
