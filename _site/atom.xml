@@ -4,7 +4,7 @@
  <title>Cocoa Sugar Free</title>
  <link href="http://imanzarrabian.github.io/atom.xml" rel="self"/>
  <link href="http://imanzarrabian.github.io/"/>
- <updated>2015-03-30T16:58:04+02:00</updated>
+ <updated>2015-03-30T17:57:48+02:00</updated>
  <id>http://imanzarrabian.github.io</id>
  <author>
    <name>Iman Zarrabian</name>
@@ -13,11 +13,11 @@
 
  
  <entry>
-   <title>Please Stop Displaying No Internet Alert Views</title>
+   <title>Please stop displaying "No Internet" Alert Views!</title>
    <link href="http://imanzarrabian.github.io//2014/07/25/please-stop-displaying-no-internet-alert-views/"/>
    <updated>2014-07-25T00:00:00+02:00</updated>
    <id>http://imanzarrabian.github.io/2014/07/25/please-stop-displaying-no-internet-alert-views</id>
-   <content type="html">&lt;p&gt;Iman : One of the things you still see a lot in iOS apps is the “No Internet” popups displayed whenever an outgoing request fails because network is not reachable anymore. This is poor UX!&lt;/p&gt;
+   <content type="html">&lt;p&gt;One of the things you still see a lot in iOS apps is the “No Internet” popups displayed whenever an outgoing request fails because network is not reachable anymore. This is poor UX!&lt;/p&gt;
 
 &lt;p&gt;Reachability is a global matter that should be handled asynchronously. When network is not reachable your app should go in a limited mode, avoiding any request that will collapse even before it is started. In the mean time users should be warned that Internet is not available anymore.&lt;/p&gt;
 
@@ -59,8 +59,9 @@ It can be done using a class method (defined in whatever utility class you want)
 &lt;p&gt;This method analyzes the error and if it’s not a reachability error executes whatever display block is passed in. Otherwise it does nothing and you’ll have to trust the asynchronous mechanism you put in place earlier to display Internet reachability errors to the users.&lt;/p&gt;
 
 &lt;p&gt;If you liked this post, you can
-&lt;a href=&quot;https://twitter.com/intent/tweet?url=http://imanzarrabian.github.io/2014/07/25/please-stop-displaying-no-internet-alert-views/&amp;amp;text=Please Stop Displaying No Internet Alert Views&amp;amp;via=imanzarrabian&quot; target=&quot;_blank&quot;&gt;
-  share it on Twitter&lt;/a&gt;
+&amp;lt;a href=”https://twitter.com/intent/tweet?url=http://imanzarrabian.github.io/2014/07/25/please-stop-displaying-no-internet-alert-views/&amp;amp;text=Please stop displaying “No Internet” Alert Views!&amp;amp;via=imanzarrabian”
+   target=”_blank”&amp;gt;
+  share it on Twitter&amp;lt;/a&amp;gt;
 or just
 &lt;a href=&quot;https://twitter.com/imanzarrabian&quot;&gt;
   follow me&lt;/a&gt;!&lt;/p&gt;

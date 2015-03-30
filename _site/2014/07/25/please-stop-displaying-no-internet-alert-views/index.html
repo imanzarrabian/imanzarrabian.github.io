@@ -1,4 +1,69 @@
-<p>Iman : One of the things you still see a lot in iOS apps is the “No Internet” popups displayed whenever an outgoing request fails because network is not reachable anymore. This is poor UX!</p>
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="UTF-8">
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      Please stop displaying "No Internet" Alert Views! &middot; Cocoa Sugar Free
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/public/css/poole.css">
+  <link rel="stylesheet" href="/public/css/syntax.css">
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/public/apple-touch-icon-precomposed.png">
+  <link rel="shortcut icon" href="/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/atom+xml" title="Cocoa Sugar Free" href="/atom.xml">
+</head>
+
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-61330534-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+  <body>
+
+    <div class="container content">
+      <header class="masthead">
+      <!--  <h3 class="masthead-title">
+          <a href="/" title="Home">Cocoa Sugar Free</a>
+          <small></small>
+        </h3>-->
+        <h3 class="masthead-title">
+          <a href="/" title="Home">Cocoa Sugar Free</a>
+
+          
+            &nbsp;&nbsp;&nbsp;
+            <small><a href="/archive">Archive</a></small>
+          
+            &nbsp;&nbsp;&nbsp;
+            <small><a href="/atom.xml">Feed</a></small>
+          
+        </h3>
+      </header>
+
+      <main>
+        <article class="post">
+  <h1 class="post-title">Please stop displaying "No Internet" Alert Views!</h1>
+  <time datetime="2014-07-25T00:00:00+02:00" class="page-date">25 Jul 2014</time>
+  <p>One of the things you still see a lot in iOS apps is the “No Internet” popups displayed whenever an outgoing request fails because network is not reachable anymore. This is poor UX!</p>
 
 <p>Reachability is a global matter that should be handled asynchronously. When network is not reachable your app should go in a limited mode, avoiding any request that will collapse even before it is started. In the mean time users should be warned that Internet is not available anymore.</p>
 
@@ -40,9 +105,55 @@ It can be done using a class method (defined in whatever utility class you want)
 <p>This method analyzes the error and if it’s not a reachability error executes whatever display block is passed in. Otherwise it does nothing and you’ll have to trust the asynchronous mechanism you put in place earlier to display Internet reachability errors to the users.</p>
 
 <p>If you liked this post, you can
-<a href="https://twitter.com/intent/tweet?url=http://imanzarrabian.github.io/2014/07/25/please-stop-displaying-no-internet-alert-views/&amp;text=Please Stop Displaying No Internet Alert Views&amp;via=imanzarrabian" target="_blank">
-  share it on Twitter</a>
+&lt;a href=”https://twitter.com/intent/tweet?url=http://imanzarrabian.github.io/2014/07/25/please-stop-displaying-no-internet-alert-views/&amp;text=Please stop displaying “No Internet” Alert Views!&amp;via=imanzarrabian”
+   target=”_blank”&gt;
+  share it on Twitter&lt;/a&gt;
 or just
 <a href="https://twitter.com/imanzarrabian">
   follow me</a>!</p>
 
+
+</article>
+
+<aside class="related">
+  <h2>Related Posts</h2>
+  <ul class="related-posts">
+    
+      <li>
+        <h3>
+          <a href="//2014/07/18/pop-framework/">
+            Pop framework: A practical use case
+            <small><time datetime="2014-07-18T00:00:00+02:00">18 Jul 2014</time></small>
+          </a>
+        </h3>
+      </li>
+    
+  </ul>
+</aside>
+
+      </main>
+
+      <footer class="footer">
+        <small>
+          &copy; <time datetime="2015-03-30T17:57:48+02:00">2015</time>. All rights reserved.
+        </small>
+      </footer>
+      <div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = 'cocoasugarfree';
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+    </div>
+
+  </body>
+</html>
