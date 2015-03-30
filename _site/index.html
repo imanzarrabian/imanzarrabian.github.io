@@ -64,58 +64,201 @@
   
   <article class="post">
     <h1 class="post-title">
-      <a href="/2014/07/25/please-stop-displaying-no-internet-alert-views/">
-        Please stop displaying "No Internet" Alert Views!
+      <a href="/2015/03/30/2015-03-20-cache-and-fetch-with-promisekit-and-alamofire/">
+        Cache and Fetch with PromiseKit and Alamofire
       </a>
     </h1>
 
-    <time datetime="2014-07-25T00:00:00+02:00" class="post-date">25 Jul 2014</time>
+    <time datetime="2015-03-30T19:28:54+02:00" class="post-date">30 Mar 2015</time>
 
-    <p>One of the things you still see a lot in iOS apps is the “No Internet” popups displayed whenever an outgoing request fails because network is not reachable anymore. This is poor UX!</p>
+    <p>It’s been a while since I’ve been thinking about writing some tech articles again. The first blog was such an adventure and I didn’t have the shoulders to handle it. Lack of time, lack of knowledge definitely.
+It’s been 3 or 4 years now and I have even less time today, I think I’m ready though. This might seem very paradoxal, it’s not to me.</p>
 
-<p>Reachability is a global matter that should be handled asynchronously. When network is not reachable your app should go in a limited mode, avoiding any request that will collapse even before it is started. In the mean time users should be warned that Internet is not available anymore.</p>
+<p>Anyway I decided to create this blog and write again when I started to use <a href="https://github.com/facebook/pop"><strong>pop framework</strong></a> for iOS. Almost everything I read about the new Facebook opensource framework was great but what an everyday iOS developer really needs is to experiment, right? So I did that.</p>
 
-<p>When working with <a href="https://github.com/AFNetworking/AFNetworking">AFNetworking</a> just set the reachability status change block when you instantiate your API Client:</p>
+<p>Even better I’ve decided to include it and use it as a partial replacement for Apple’s Core Animation in one of my <a href="http://www.onemorethingstudio.com"><strong>Company’s</strong></a> project : <a href="https://itunes.apple.com/app/cheers-selfie-party/id779619406?mt=8"><strong>Cheers!</strong></a></p>
 
-<div class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span class="p">[[</span><span class="n">AFNetworkReachabilityManager</span> <span class="n">sharedManager</span><span class="p">]</span> <span class="nl">setReachabilityStatusChangeBlock</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="n">AFNetworkReachabilityStatus</span> <span class="n">status</span><span class="p">)</span> <span class="p">{</span>
-            <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Reachability: %@&quot;</span><span class="p">,</span> <span class="n">AFStringFromNetworkReachabilityStatus</span><span class="p">(</span><span class="n">status</span><span class="p">));</span>
-            <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
-                <span class="p">[[</span><span class="bp">NSNotificationCenter</span> <span class="n">defaultCenter</span><span class="p">]</span> <span class="nl">postNotificationName</span><span class="p">:</span><span class="n">SKYReachabilityChangedNotification</span> <span class="nl">object</span><span class="p">:</span><span class="nb">nil</span> <span class="nl">userInfo</span><span class="p">:</span><span class="l">@{</span><span class="s">@&quot;status&quot;</span><span class="o">:</span> <span class="l">@(</span><span class="n">status</span><span class="l">)}</span><span class="p">];</span>
-            <span class="p">});</span>
-<span class="p">}];</span></code></pre></div>
+<p>This post is about a practial case study of how I used pop and other cool animation stuffs to create some part of Cheers V2 UI/UX (Note that Cheers V2 is not live yet, we’re working on it).</p>
 
-<p>I like to work with notifications when reachability is concerned because all my view controllers can be observers for this notification and respond to it with the proper UI in their own context.</p>
+<p>Basically the idea of all the animations behind Cheers V2 is to have something very organic and fluid. <a href="https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8"><strong>Paper</strong></a> was a great source of inspiration but we don’t want to be as interactive as paper is. So we’ll focus on one screen here, the login screen.</p>
 
-<p>The observers of this SKYReachabilityChangedNotification are responsible for toggling on and off the “No Internet” UI based on the reachability changes (Alert Views are Evil, please don’t use them).
-These same observers can also disable any send button, display placeholders if needed, handle offline data, stop further outgoing requests or do anything that you need to do whenever Internet is not available.</p>
+<p>Our animations can be decomposed into two categories: the launch animations and the interactive animations.</p>
 
-<p><img src="http://planning.omts.fr/SugarFree/nointernetconnection.png" alt="Some UI" class="center-image" /></p>
+<p><img src="http://data.bloggif.com/distant/user/store/6/e/d/6/a73b8ed6f127a5b726a8a2cfe0796de6.gif" alt="Mounting created Bloggif" class="center-image" /></p>
 
-<p>Now that your app is set for responding to reachability changes with a more subtle UI the only thing left is to silence errors of any pending requests that started before network has dropped. Remember that these are the only requests that need to be taking care of because your view controllers won’t allow any other request to start if Internet is no longer available.</p>
+<p>The launch animations are the background Image View getting “squizzed” and the bottom view getting in the screen with a nice bouncy effect without any user interaction. I’ve added to that some <a href="https://github.com/facebook/Shimmer">Shimmering</a> effect as well on the “Wanna find out?” label.</p>
 
-<p>Again I like to let the view controllers decide what is the right way of displaying an applicative error and the only thing that should be centralized is to silence the “No Internet” error on a per request basis.
-It can be done using a class method (defined in whatever utility class you want) available to all your controllers. Call this method on all your request failure completions and pass in the error you get and a display block.</p>
+<p>For this post I’ll work on a demo project (available on <a href="https://github.com/OMTS/CocoaSugarFree"><strong>github</strong></a>)</p>
 
-<div class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span class="p">+</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">handleError:</span><span class="p">(</span><span class="bp">NSError</span> <span class="o">*</span><span class="p">)</span><span class="nv">error</span> <span class="nf">withDisplayBlock:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)())</span><span class="nv">displayBlock</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="p">([</span><span class="n">error</span><span class="p">.</span><span class="n">domain</span> <span class="nl">isEqualToString</span><span class="p">:</span><span class="n">NSURLErrorDomain</span><span class="p">]</span> <span class="o">&amp;&amp;</span> <span class="n">error</span><span class="p">.</span><span class="n">code</span> <span class="o">==</span> <span class="n">NSURLErrorNotConnectedToInternet</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Internet availability error =&gt; Silenced&quot;</span><span class="p">);</span>
-     <span class="p">}</span>
-     <span class="k">else</span> <span class="p">{</span>
-         <span class="k">if</span> <span class="p">(</span><span class="n">displayBlock</span><span class="p">)</span> <span class="p">{</span>
-             <span class="c1">//Always run the display block in the UI queue</span>
-             <span class="n">dispatch_async</span><span class="p">(</span><span class="n">dispatch_get_main_queue</span><span class="p">(),</span> <span class="o">^</span><span class="p">{</span>
-                 <span class="n">displayBlock</span><span class="p">();</span>
-             <span class="p">});</span>
-         <span class="p">}</span>
-     <span class="p">}</span>
+<p>From now on I consider that you have some basic knowledge of iOS Dev.</p>
+
+<h3 id="launch-animation">Launch Animation</h3>
+<p><img src="http://data.bloggif.com/distant/user/store/8/2/f/c/1653782d567ff619ad8bb4f3a32fcf28.gif" alt="Minion" class="center-image" /></p>
+
+<p>The idea here is to start off with an image bigger than the screen and resize it after the view is displayed. Sounds easy enough. I use pop framework to make the image view small and reposition it on the top of the screen.</p>
+
+<div class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span class="c1">//1 - Create animations</span>
+<span class="n">POPSpringAnimation</span> <span class="o">*</span><span class="n">imageViewBoundsAnimation</span> <span class="o">=</span> <span class="p">[</span><span class="n">POPSpringAnimation</span> <span class="n">animation</span><span class="p">];</span>
+<span class="n">POPSpringAnimation</span> <span class="o">*</span><span class="n">imageViewPositionAnimation</span> <span class="o">=</span> <span class="p">[</span><span class="n">POPSpringAnimation</span> <span class="n">animation</span><span class="p">];</span>
+
+<span class="c1">//2 - Set the animatable properties</span>
+<span class="n">imageViewBoundsAnimation</span><span class="p">.</span><span class="n">property</span> <span class="o">=</span> <span class="p">[</span><span class="n">POPAnimatableProperty</span> <span class="nl">propertyWithName</span><span class="p">:</span><span class="n">kPOPLayerBounds</span><span class="p">];</span>
+<span class="n">imageViewPositionAnimation</span><span class="p">.</span><span class="n">property</span> <span class="o">=</span> <span class="p">[</span><span class="n">POPAnimatableProperty</span> <span class="nl">propertyWithName</span><span class="p">:</span><span class="n">kPOPLayerPositionY</span><span class="p">];</span>
+
+<span class="c1">//3 - set the destination values</span>
+<span class="n">imageViewBoundsAnimation</span><span class="p">.</span><span class="n">toValue</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSValue</span> <span class="nl">valueWithCGRect</span><span class="p">:</span><span class="n">CGRectMake</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">width</span><span class="p">,</span> <span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">height</span><span class="p">)];</span>
+<span class="n">imageViewPositionAnimation</span><span class="p">.</span><span class="n">toValue</span> <span class="o">=</span> <span class="l">@(</span><span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">.</span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="l">)</span><span class="p">;</span>
+
+<span class="c1">//4 - set the animaions configurations values</span>
+<span class="n">imageViewBoundsAnimation</span><span class="p">.</span><span class="n">springBounciness</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="n">imageViewBoundsAnimation</span><span class="p">.</span><span class="n">springSpeed</span> <span class="o">=</span> <span class="mi">15</span><span class="p">;</span>
+<span class="n">imageViewPositionAnimation</span><span class="p">.</span><span class="n">springBounciness</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+<span class="n">imageViewPositionAnimation</span><span class="p">.</span><span class="n">springSpeed</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
+
+<span class="c1">//5 - Finally start the animation</span>
+<span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">bgImageView</span> <span class="nl">pop_addAnimation</span><span class="p">:</span><span class="n">imageViewBoundsAnimation</span> <span class="nl">forKey</span><span class="p">:</span><span class="s">@&quot;bounds&quot;</span><span class="p">];</span>
+<span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">bgImageView</span> <span class="nl">pop_addAnimation</span><span class="p">:</span><span class="n">imageViewPositionAnimation</span> <span class="nl">forKey</span><span class="p">:</span><span class="s">@&quot;position&quot;</span><span class="p">];</span></code></pre></div>
+
+<p>That’s it. We create our animations, select the right property to animate within the pop framework, set the destination values and configure the animation behaviour. The final two lines of code kick off the animations</p>
+
+<p>Note that in this project I’m not using Autolayout but feel free to animate NSLayoutConstraints instead of bounds and position. NSLayoutConstraints are animatable properies that you can select as a parameter of the <strong>propertyWithName:</strong> method</p>
+
+<p>I’m also using different values of bounciness for each of these animations making things fall in place with a little cool “imperfect random organic parallax effect”. Feel free to play with thoses speed and bounciness values to find the right feeling.</p>
+
+<p>We still have to move our bottom view making it visible to users. I’m doing that by adding the following code to the previous animation method.</p>
+
+<div class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span class="n">POPSpringAnimation</span> <span class="o">*</span><span class="n">interactionViewBottomAnimation</span> <span class="o">=</span> <span class="p">[</span><span class="n">POPSpringAnimation</span> <span class="n">animation</span><span class="p">];</span>
+
+<span class="c1">//Set the animatable properties</span>
+<span class="n">interactionViewBottomAnimation</span><span class="p">.</span><span class="n">property</span> <span class="o">=</span> <span class="p">[</span><span class="n">POPAnimatableProperty</span> <span class="nl">propertyWithName</span><span class="p">:</span><span class="n">kPOPLayerPositionY</span><span class="p">];</span>
+
+<span class="c1">//set the destination values</span>
+<span class="n">interactionViewBottomAnimation</span><span class="p">.</span><span class="n">toValue</span> <span class="o">=</span> <span class="l">@(</span><span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">height</span> <span class="o">-</span> <span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">height</span><span class="o">/</span><span class="mf">2.0</span><span class="l">)</span><span class="p">;</span>
+
+<span class="c1">//set the animaions configurations valuessugar</span>
+<span class="n">interactionViewBottomAnimation</span><span class="p">.</span><span class="n">springBounciness</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+<span class="n">interactionViewBottomAnimation</span><span class="p">.</span><span class="n">springSpeed</span> <span class="o">=</span> <span class="mi">12</span><span class="p">;</span>
+
+<span class="c1">//Finally set the animation</span>
+<span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span> <span class="nl">pop_addAnimation</span><span class="p">:</span><span class="n">interactionViewBottomAnimation</span> <span class="nl">forKey</span><span class="p">:</span><span class="s">@&quot;interactionViewAnimation&quot;</span><span class="p">];</span></code></pre></div>
+
+<h3 id="interaction-animation">Interaction Animation</h3>
+
+<p><img src="http://data.bloggif.com/distant/user/store/0/0/d/c/1c742d585024bd13b745026a8803cd00.gif" alt="Mounting created Bloggif" class="center-image" /></p>
+
+<p>Let’s deal with the bounce effect of the bottom view first. There are tons of way to accomplish that. You can code everything by hand, or use a scroll view which will give it to you for free.
+In my case I decided to use UIKit Dynamics and a UISnapBehaviour both introduced in iOS7 because I want to have easy control on the bounce effect and on the actual movement of the bottom view. And because I think UIKit Dynamics are cool :)</p>
+
+<p>First we have to add a pan gesture to the bottom view:</p>
+
+<div class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span class="bp">UIPanGestureRecognizer</span> <span class="o">*</span><span class="n">gestureRecognizer</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">UIPanGestureRecognizer</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithTarget</span><span class="p">:</span><span class="nb">self</span> <span class="nl">action</span><span class="p">:</span><span class="k">@selector</span><span class="p">(</span><span class="nl">handlePanGesture</span><span class="p">:)];</span>
+    <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span> <span class="nl">addGestureRecognizer</span><span class="p">:</span><span class="n">gestureRecognizer</span><span class="p">];</span></code></pre></div>
+
+<p>and deal with the gesture when it is triggered by the user:</p>
+
+<div class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">handlePanGesture:</span><span class="p">(</span><span class="bp">UIPanGestureRecognizer</span> <span class="o">*</span><span class="p">)</span><span class="nv">gestureRecognizer</span> <span class="p">{</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">gestureRecognizer</span><span class="p">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">UIGestureRecognizerStateBegan</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// We&#39;ll fill that later</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">gestureRecognizer</span><span class="p">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">UIGestureRecognizerStateChanged</span><span class="p">)</span> <span class="p">{</span>
+
+        <span class="bp">CGPoint</span> <span class="n">newCenter</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span><span class="p">.</span><span class="n">center</span><span class="p">;</span>
+
+        <span class="c1">//This is why I choosed to implement this with UIKit Dynamics</span>
+        <span class="n">newCenter</span><span class="p">.</span><span class="n">y</span> <span class="o">+=</span> <span class="p">[</span><span class="n">gestureRecognizer</span> <span class="nl">translationInView</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">].</span><span class="n">y</span><span class="o">/</span><span class="mf">2.5</span><span class="p">;</span>
+
+        <span class="c1">//Zooming the top imageview in or out</span>
+        <span class="c1">//You can set some max zooming in or out here to avoid too much scaling</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">bgImageView</span><span class="p">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="n">CGRectMake</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">self</span><span class="p">.</span><span class="n">bgImageView</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">width</span><span class="o">*</span> <span class="p">(</span><span class="n">newCenter</span><span class="p">.</span><span class="n">y</span><span class="o">/</span><span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span><span class="p">.</span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="p">),</span> <span class="nb">self</span><span class="p">.</span><span class="n">bgImageView</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">height</span><span class="o">*</span> <span class="p">(</span><span class="n">newCenter</span><span class="p">.</span><span class="n">y</span><span class="o">/</span><span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span><span class="p">.</span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="p">));</span>
+
+        <span class="c1">//Actually moving the view</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span><span class="p">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">newCenter</span><span class="p">;</span>
+        <span class="p">[</span><span class="n">gestureRecognizer</span> <span class="nl">setTranslation</span><span class="p">:</span><span class="n">CGPointZero</span> <span class="nl">inView</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">];</span>
+
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">gestureRecognizer</span><span class="p">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">UIGestureRecognizerStateEnded</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">//We&#39;ll fill that later</span>
+    <span class="p">}</span>
 <span class="p">}</span></code></pre></div>
 
-<p>This method analyzes the error and if it’s not a reachability error executes whatever display block is passed in. Otherwise it does nothing and you’ll have to trust the asynchronous mechanism you put in place earlier to display Internet reachability errors to the users.</p>
+<p>The important thing here is that as long as the user moves his finger on the bottom view we just move it’s center and we change the background image bounds.</p>
+
+<p>You can of course tweak the code here to set some boundaries to the zooming.</p>
+
+<p>Ok, let’s add the actual bounce effect to resist the movement. This initialization should be done on the screen appearance for example.</p>
+
+<div class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span class="c1">//Creating the animator and the Snap Behaviour</span>
+<span class="nb">self</span><span class="p">.</span><span class="n">animator</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">UIDynamicAnimator</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithReferenceView</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">];</span>
+<span class="nb">self</span><span class="p">.</span><span class="n">snapBehaviour</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">UISnapBehavior</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithItem</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span> <span class="nl">snapToPoint</span><span class="p">:</span><span class="n">CGPointMake</span><span class="p">(</span><span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">width</span><span class="o">/</span><span class="mf">2.0</span><span class="p">,</span><span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">height</span> <span class="o">-</span> <span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">height</span><span class="o">/</span><span class="mf">2.0</span><span class="p">)];</span>
+<span class="nb">self</span><span class="p">.</span><span class="n">snapBehaviour</span><span class="p">.</span><span class="n">damping</span> <span class="o">=</span> <span class="mf">.7</span><span class="p">;</span></code></pre></div>
+
+<p>Note that the anchor point for our UISnapBehaviour is the center of our bottom view in the superview coordinates system.</p>
+
+<p>One thing left is to add this behaviour to our UIDynamicAnimator and we’re doing that as soon as our user lets the view loose (aka as the UIGestureRecognizerStateEnded Gesture state).
+This is the new implementation of our previous handlePanGesture: method</p>
+
+<div class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">handlePanGesture:</span><span class="p">(</span><span class="bp">UIPanGestureRecognizer</span> <span class="o">*</span><span class="p">)</span><span class="nv">gestureRecognizer</span> <span class="p">{</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">gestureRecognizer</span><span class="p">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">UIGestureRecognizerStateBegan</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// Let&#39;s avoid any interference here</span>
+        <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">animator</span> <span class="n">removeAllBehaviors</span><span class="p">];</span>
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">gestureRecognizer</span><span class="p">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">UIGestureRecognizerStateChanged</span><span class="p">)</span> <span class="p">{</span>
+
+        <span class="bp">CGPoint</span> <span class="n">newCenter</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span><span class="p">.</span><span class="n">center</span><span class="p">;</span>
+
+        <span class="c1">//This is why I choosed to implement this with UIKit Dynamics</span>
+        <span class="n">newCenter</span><span class="p">.</span><span class="n">y</span> <span class="o">+=</span> <span class="p">[</span><span class="n">gestureRecognizer</span> <span class="nl">translationInView</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">].</span><span class="n">y</span><span class="o">/</span><span class="mf">2.5</span><span class="p">;</span>
+
+        <span class="c1">//Zooming the top imageview in or out</span>
+        <span class="c1">//You can set some max zooming in or out here to avoid too much scaling</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">bgImageView</span><span class="p">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="n">CGRectMake</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">self</span><span class="p">.</span><span class="n">bgImageView</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">width</span><span class="o">*</span> <span class="p">(</span><span class="n">newCenter</span><span class="p">.</span><span class="n">y</span><span class="o">/</span><span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span><span class="p">.</span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="p">),</span> <span class="nb">self</span><span class="p">.</span><span class="n">bgImageView</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">height</span><span class="o">*</span> <span class="p">(</span><span class="n">newCenter</span><span class="p">.</span><span class="n">y</span><span class="o">/</span><span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span><span class="p">.</span><span class="n">center</span><span class="p">.</span><span class="n">y</span><span class="p">));</span>
+
+        <span class="c1">//Actually moving the view</span>
+        <span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span><span class="p">.</span><span class="n">center</span> <span class="o">=</span> <span class="n">newCenter</span><span class="p">;</span>
+        <span class="p">[</span><span class="n">gestureRecognizer</span> <span class="nl">setTranslation</span><span class="p">:</span><span class="n">CGPointZero</span> <span class="nl">inView</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">];</span>
+
+    <span class="p">}</span>
+    <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">gestureRecognizer</span><span class="p">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">UIGestureRecognizerStateEnded</span><span class="p">)</span> <span class="p">{</span>
+    	<span class="c1">//Add the Behaviour to the animator</span>
+         <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">animator</span> <span class="nl">addBehavior</span><span class="p">:</span><span class="nb">self</span><span class="p">.</span><span class="n">snapBehaviour</span><span class="p">];</span>
+
+        <span class="bp">UIDynamicItemBehavior</span> <span class="o">*</span><span class="n">itemBehaviour</span> <span class="o">=</span> <span class="p">[[</span><span class="bp">UIDynamicItemBehavior</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithItems</span><span class="p">:</span><span class="l">@[</span><span class="nb">self</span><span class="p">.</span><span class="n">interactionView</span><span class="l">]</span><span class="p">];</span>
+        <span class="n">itemBehaviour</span><span class="p">.</span><span class="n">allowsRotation</span> <span class="o">=</span> <span class="nb">NO</span><span class="p">;</span>
+        <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">animator</span> <span class="nl">addBehavior</span><span class="p">:</span><span class="n">itemBehaviour</span><span class="p">];</span>
+
+        <span class="c1">//This will simply set the image view animate back to it&#39;s original size</span>
+        <span class="p">[</span><span class="nb">self</span> <span class="n">animateBackToTheRightTopImageSize</span><span class="p">];</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></div>
+
+<p>Notice the allowsRotation property set to NO on the itemBehaviour. You can comment that line out and see that the bottom view will come back to it’s position in a funky way. I think this a little too much and for Cheers I’ve decided to keep it simple (at least for this specific animation).</p>
+
+<p>Finally the only thing left is to implement this animateBackToTheRightTopImageSize method where pop framework is used again to set the background image’s bounds back to it’s original value.</p>
+
+<div class="highlight"><pre><code class="language-objective-c" data-lang="objective-c"><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">animateBackToTheRightTopImageSize</span> <span class="p">{</span>
+    <span class="n">POPSpringAnimation</span> <span class="o">*</span><span class="n">sizeAnimation</span> <span class="o">=</span> <span class="p">[</span><span class="n">POPSpringAnimation</span> <span class="n">animation</span><span class="p">];</span>
+
+    <span class="n">sizeAnimation</span><span class="p">.</span><span class="n">property</span> <span class="o">=</span> <span class="p">[</span><span class="n">POPAnimatableProperty</span> <span class="nl">propertyWithName</span><span class="p">:</span><span class="n">kPOPLayerBounds</span><span class="p">];</span>
+
+    <span class="n">sizeAnimation</span><span class="p">.</span><span class="n">toValue</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSValue</span> <span class="nl">valueWithCGRect</span><span class="p">:</span><span class="n">CGRectMake</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">width</span><span class="p">,</span> <span class="nb">self</span><span class="p">.</span><span class="n">view</span><span class="p">.</span><span class="n">bounds</span><span class="p">.</span><span class="n">size</span><span class="p">.</span><span class="n">height</span><span class="p">)];</span>
+
+    <span class="n">sizeAnimation</span><span class="p">.</span><span class="n">springBounciness</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+    <span class="n">sizeAnimation</span><span class="p">.</span><span class="n">springSpeed</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
+
+    <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">bgImageView</span> <span class="nl">pop_addAnimation</span><span class="p">:</span><span class="n">sizeAnimation</span> <span class="nl">forKey</span><span class="p">:</span><span class="s">@&quot;sizeBack&quot;</span><span class="p">];</span>
+<span class="p">}</span></code></pre></div>
+
+<p>A little something remains as an excercise here. Did you notice that we use a constant speed for the “back to it’s place” animation? pop crew’s advice is to have some continuity in the animations. Here continuity would be for example bypassing the snap behaviour and get the actual speed of the bottom view when the user lift his fingers and pass it as the initial velocity for some decay animation (another animation type shipped with pop) that moves our bottom view back to it’s original position from the current view position. There’s a little something here. Please feel free to experiment on that.</p>
+
+<p>That’s it for this small use case study.</p>
+
+<p>Reminder : <a href="https://github.com/OMTS/CocoaSugarFree"><strong>Source Code</strong></a></p>
 
 <p>If you liked this post, you can
-&lt;a href=”https://twitter.com/intent/tweet?url=http://imanzarrabian.github.io/2014/07/25/please-stop-displaying-no-internet-alert-views/&amp;text=Please stop displaying “No Internet” Alert Views!&amp;via=imanzarrabian”
-   target=”_blank”&gt;
-  share it on Twitter&lt;/a&gt;
+<a href="https://twitter.com/intent/tweet?url=http://imanzarrabian.github.io/2015/03/30/2015-03-20-cache-and-fetch-with-promisekit-and-alamofire/&amp;text=Cache and Fetch with PromiseKit and Alamofire&amp;via=imanzarrabian" target="_blank">
+  share it on Twitter</a>
 or just
 <a href="https://twitter.com/imanzarrabian">
   follow me</a>!</p>
@@ -138,7 +281,7 @@ or just
 
       <footer class="footer">
         <small>
-          &copy; <time datetime="2015-03-30T17:57:48+02:00">2015</time>. All rights reserved.
+          &copy; <time datetime="2015-03-30T19:28:54+02:00">2015</time>. All rights reserved.
         </small>
       </footer>
       <div id="disqus_thread"></div>

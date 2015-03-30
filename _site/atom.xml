@@ -4,7 +4,7 @@
  <title>Cocoa Sugar Free</title>
  <link href="http://imanzarrabian.github.io/atom.xml" rel="self"/>
  <link href="http://imanzarrabian.github.io/"/>
- <updated>2015-03-30T17:57:48+02:00</updated>
+ <updated>2015-03-30T19:28:54+02:00</updated>
  <id>http://imanzarrabian.github.io</id>
  <author>
    <name>Iman Zarrabian</name>
@@ -13,7 +13,415 @@
 
  
  <entry>
-   <title>Please stop displaying "No Internet" Alert Views!</title>
+   <title>Cache and Fetch with PromiseKit and Alamofire</title>
+   <link href="http://imanzarrabian.github.io//2015/03/30/2015-03-20-cache-and-fetch-with-promisekit-and-alamofire/"/>
+   <updated>2015-03-30T19:28:54+02:00</updated>
+   <id>http://imanzarrabian.github.io/2015/03/30/2015-03-20-cache-and-fetch-with-promisekit-and-alamofire</id>
+   <content type="html">&lt;p&gt;It’s been a while since I’ve been thinking about writing some tech articles again. The first blog was such an adventure and I didn’t have the shoulders to handle it. Lack of time, lack of knowledge definitely.
+It’s been 3 or 4 years now and I have even less time today, I think I’m ready though. This might seem very paradoxal, it’s not to me.&lt;/p&gt;
+
+&lt;p&gt;Anyway I decided to create this blog and write again when I started to use &lt;a href=&quot;https://github.com/facebook/pop&quot;&gt;&lt;strong&gt;pop framework&lt;/strong&gt;&lt;/a&gt; for iOS. Almost everything I read about the new Facebook opensource framework was great but what an everyday iOS developer really needs is to experiment, right? So I did that.&lt;/p&gt;
+
+&lt;p&gt;Even better I’ve decided to include it and use it as a partial replacement for Apple’s Core Animation in one of my &lt;a href=&quot;http://www.onemorethingstudio.com&quot;&gt;&lt;strong&gt;Company’s&lt;/strong&gt;&lt;/a&gt; project : &lt;a href=&quot;https://itunes.apple.com/app/cheers-selfie-party/id779619406?mt=8&quot;&gt;&lt;strong&gt;Cheers!&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;This post is about a practial case study of how I used pop and other cool animation stuffs to create some part of Cheers V2 UI/UX (Note that Cheers V2 is not live yet, we’re working on it).&lt;/p&gt;
+
+&lt;p&gt;Basically the idea of all the animations behind Cheers V2 is to have something very organic and fluid. &lt;a href=&quot;https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8&quot;&gt;&lt;strong&gt;Paper&lt;/strong&gt;&lt;/a&gt; was a great source of inspiration but we don’t want to be as interactive as paper is. So we’ll focus on one screen here, the login screen.&lt;/p&gt;
+
+&lt;p&gt;Our animations can be decomposed into two categories: the launch animations and the interactive animations.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://data.bloggif.com/distant/user/store/6/e/d/6/a73b8ed6f127a5b726a8a2cfe0796de6.gif&quot; alt=&quot;Mounting created Bloggif&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The launch animations are the background Image View getting “squizzed” and the bottom view getting in the screen with a nice bouncy effect without any user interaction. I’ve added to that some &lt;a href=&quot;https://github.com/facebook/Shimmer&quot;&gt;Shimmering&lt;/a&gt; effect as well on the “Wanna find out?” label.&lt;/p&gt;
+
+&lt;p&gt;For this post I’ll work on a demo project (available on &lt;a href=&quot;https://github.com/OMTS/CocoaSugarFree&quot;&gt;&lt;strong&gt;github&lt;/strong&gt;&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;From now on I consider that you have some basic knowledge of iOS Dev.&lt;/p&gt;
+
+&lt;h3 id=&quot;launch-animation&quot;&gt;Launch Animation&lt;/h3&gt;
+&lt;p&gt;&lt;img src=&quot;http://data.bloggif.com/distant/user/store/8/2/f/c/1653782d567ff619ad8bb4f3a32fcf28.gif&quot; alt=&quot;Minion&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The idea here is to start off with an image bigger than the screen and resize it after the view is displayed. Sounds easy enough. I use pop framework to make the image view small and reposition it on the top of the screen.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objective-c&quot; data-lang=&quot;objective-c&quot;&gt;&lt;span class=&quot;c1&quot;&gt;//1 - Create animations&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;POPSpringAnimation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;imageViewBoundsAnimation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;POPSpringAnimation&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;animation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;POPSpringAnimation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;imageViewPositionAnimation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;POPSpringAnimation&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;animation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;//2 - Set the animatable properties&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;imageViewBoundsAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;property&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;POPAnimatableProperty&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;propertyWithName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kPOPLayerBounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;imageViewPositionAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;property&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;POPAnimatableProperty&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;propertyWithName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kPOPLayerPositionY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;//3 - set the destination values&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;imageViewBoundsAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSValue&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;valueWithCGRect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CGRectMake&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)];&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;imageViewPositionAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;l&quot;&gt;@(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;center&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;l&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;//4 - set the animaions configurations values&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;imageViewBoundsAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;springBounciness&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;imageViewBoundsAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;springSpeed&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;15&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;imageViewPositionAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;springBounciness&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;imageViewPositionAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;springSpeed&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;12&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;//5 - Finally start the animation&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bgImageView&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;pop_addAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;imageViewBoundsAnimation&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;forKey&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;bounds&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bgImageView&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;pop_addAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;imageViewPositionAnimation&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;forKey&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;position&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;That’s it. We create our animations, select the right property to animate within the pop framework, set the destination values and configure the animation behaviour. The final two lines of code kick off the animations&lt;/p&gt;
+
+&lt;p&gt;Note that in this project I’m not using Autolayout but feel free to animate NSLayoutConstraints instead of bounds and position. NSLayoutConstraints are animatable properies that you can select as a parameter of the &lt;strong&gt;propertyWithName:&lt;/strong&gt; method&lt;/p&gt;
+
+&lt;p&gt;I’m also using different values of bounciness for each of these animations making things fall in place with a little cool “imperfect random organic parallax effect”. Feel free to play with thoses speed and bounciness values to find the right feeling.&lt;/p&gt;
+
+&lt;p&gt;We still have to move our bottom view making it visible to users. I’m doing that by adding the following code to the previous animation method.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objective-c&quot; data-lang=&quot;objective-c&quot;&gt;&lt;span class=&quot;n&quot;&gt;POPSpringAnimation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionViewBottomAnimation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;POPSpringAnimation&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;animation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;//Set the animatable properties&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;interactionViewBottomAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;property&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;POPAnimatableProperty&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;propertyWithName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kPOPLayerPositionY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;//set the destination values&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;interactionViewBottomAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;l&quot;&gt;@(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;height&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;2.0&lt;/span&gt;&lt;span class=&quot;l&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;//set the animaions configurations valuessugar&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;interactionViewBottomAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;springBounciness&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;interactionViewBottomAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;springSpeed&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;12&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;//Finally set the animation&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;pop_addAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionViewBottomAnimation&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;forKey&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;interactionViewAnimation&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;interaction-animation&quot;&gt;Interaction Animation&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://data.bloggif.com/distant/user/store/0/0/d/c/1c742d585024bd13b745026a8803cd00.gif&quot; alt=&quot;Mounting created Bloggif&quot; class=&quot;center-image&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Let’s deal with the bounce effect of the bottom view first. There are tons of way to accomplish that. You can code everything by hand, or use a scroll view which will give it to you for free.
+In my case I decided to use UIKit Dynamics and a UISnapBehaviour both introduced in iOS7 because I want to have easy control on the bounce effect and on the actual movement of the bottom view. And because I think UIKit Dynamics are cool :)&lt;/p&gt;
+
+&lt;p&gt;First we have to add a pan gesture to the bottom view:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objective-c&quot; data-lang=&quot;objective-c&quot;&gt;&lt;span class=&quot;bp&quot;&gt;UIPanGestureRecognizer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureRecognizer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;UIPanGestureRecognizer&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;initWithTarget&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;@selector&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;handlePanGesture&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:)];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;addGestureRecognizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureRecognizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;and deal with the gesture when it is triggered by the user:&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objective-c&quot; data-lang=&quot;objective-c&quot;&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;handlePanGesture:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;UIPanGestureRecognizer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;gestureRecognizer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureRecognizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UIGestureRecognizerStateBegan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// We&amp;#39;ll fill that later&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureRecognizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UIGestureRecognizerStateChanged&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+
+        &lt;span class=&quot;bp&quot;&gt;CGPoint&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;newCenter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;center&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;//This is why I choosed to implement this with UIKit Dynamics&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;newCenter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureRecognizer&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;translationInView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;2.5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;//Zooming the top imageview in or out&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;//You can set some max zooming in or out here to avoid too much scaling&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bgImageView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CGRectMake&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bgImageView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;newCenter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;center&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bgImageView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;newCenter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;center&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;//Actually moving the view&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;center&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;newCenter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureRecognizer&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;setTranslation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CGPointZero&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;inView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureRecognizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UIGestureRecognizerStateEnded&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;//We&amp;#39;ll fill that later&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The important thing here is that as long as the user moves his finger on the bottom view we just move it’s center and we change the background image bounds.&lt;/p&gt;
+
+&lt;p&gt;You can of course tweak the code here to set some boundaries to the zooming.&lt;/p&gt;
+
+&lt;p&gt;Ok, let’s add the actual bounce effect to resist the movement. This initialization should be done on the screen appearance for example.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objective-c&quot; data-lang=&quot;objective-c&quot;&gt;&lt;span class=&quot;c1&quot;&gt;//Creating the animator and the Snap Behaviour&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;animator&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;UIDynamicAnimator&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;initWithReferenceView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;snapBehaviour&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;UISnapBehavior&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;initWithItem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;snapToPoint&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CGPointMake&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;2.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;height&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;2.0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)];&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;snapBehaviour&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;damping&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mf&quot;&gt;.7&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Note that the anchor point for our UISnapBehaviour is the center of our bottom view in the superview coordinates system.&lt;/p&gt;
+
+&lt;p&gt;One thing left is to add this behaviour to our UIDynamicAnimator and we’re doing that as soon as our user lets the view loose (aka as the UIGestureRecognizerStateEnded Gesture state).
+This is the new implementation of our previous handlePanGesture: method&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objective-c&quot; data-lang=&quot;objective-c&quot;&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;handlePanGesture:&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;UIPanGestureRecognizer&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;gestureRecognizer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureRecognizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UIGestureRecognizerStateBegan&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;// Let&amp;#39;s avoid any interference here&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;animator&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;removeAllBehaviors&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureRecognizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UIGestureRecognizerStateChanged&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+
+        &lt;span class=&quot;bp&quot;&gt;CGPoint&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;newCenter&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;center&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;//This is why I choosed to implement this with UIKit Dynamics&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;newCenter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureRecognizer&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;translationInView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;2.5&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;//Zooming the top imageview in or out&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;//You can set some max zooming in or out here to avoid too much scaling&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bgImageView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CGRectMake&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bgImageView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;newCenter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;center&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bgImageView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;newCenter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;center&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;y&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;//Actually moving the view&lt;/span&gt;
+        &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;center&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;newCenter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureRecognizer&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;setTranslation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CGPointZero&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;inView&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gestureRecognizer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;UIGestureRecognizerStateEnded&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    	&lt;span class=&quot;c1&quot;&gt;//Add the Behaviour to the animator&lt;/span&gt;
+         &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;animator&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;addBehavior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;snapBehaviour&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+        &lt;span class=&quot;bp&quot;&gt;UIDynamicItemBehavior&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;itemBehaviour&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;UIDynamicItemBehavior&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;alloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;initWithItems&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;l&quot;&gt;@[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;interactionView&lt;/span&gt;&lt;span class=&quot;l&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;itemBehaviour&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;allowsRotation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;animator&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;addBehavior&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;itemBehaviour&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;//This will simply set the image view animate back to it&amp;#39;s original size&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;animateBackToTheRightTopImageSize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Notice the allowsRotation property set to NO on the itemBehaviour. You can comment that line out and see that the bottom view will come back to it’s position in a funky way. I think this a little too much and for Cheers I’ve decided to keep it simple (at least for this specific animation).&lt;/p&gt;
+
+&lt;p&gt;Finally the only thing left is to implement this animateBackToTheRightTopImageSize method where pop framework is used again to set the background image’s bounds back to it’s original value.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-objective-c&quot; data-lang=&quot;objective-c&quot;&gt;&lt;span class=&quot;p&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;animateBackToTheRightTopImageSize&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;POPSpringAnimation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sizeAnimation&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;POPSpringAnimation&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;animation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;sizeAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;property&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;POPAnimatableProperty&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;propertyWithName&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kPOPLayerBounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;sizeAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;toValue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;NSValue&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;valueWithCGRect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CGRectMake&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;width&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;view&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bounds&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)];&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;sizeAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;springBounciness&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;sizeAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;springSpeed&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bgImageView&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;pop_addAnimation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sizeAnimation&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;forKey&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;@&amp;quot;sizeBack&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;A little something remains as an excercise here. Did you notice that we use a constant speed for the “back to it’s place” animation? pop crew’s advice is to have some continuity in the animations. Here continuity would be for example bypassing the snap behaviour and get the actual speed of the bottom view when the user lift his fingers and pass it as the initial velocity for some decay animation (another animation type shipped with pop) that moves our bottom view back to it’s original position from the current view position. There’s a little something here. Please feel free to experiment on that.&lt;/p&gt;
+
+&lt;p&gt;That’s it for this small use case study.&lt;/p&gt;
+
+&lt;p&gt;Reminder : &lt;a href=&quot;https://github.com/OMTS/CocoaSugarFree&quot;&gt;&lt;strong&gt;Source Code&lt;/strong&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;If you liked this post, you can
+&lt;a href=&quot;https://twitter.com/intent/tweet?url=http://imanzarrabian.github.io/2015/03/30/2015-03-20-cache-and-fetch-with-promisekit-and-alamofire/&amp;amp;text=Cache and Fetch with PromiseKit and Alamofire&amp;amp;via=imanzarrabian&quot; target=&quot;_blank&quot;&gt;
+  share it on Twitter&lt;/a&gt;
+or just
+&lt;a href=&quot;https://twitter.com/imanzarrabian&quot;&gt;
+  follow me&lt;/a&gt;!&lt;/p&gt;
+
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Introducing Poole</title>
+   <link href="http://imanzarrabian.github.io//2015/03/30/2014-01-02-introducing-poole/"/>
+   <updated>2015-03-30T16:23:30+02:00</updated>
+   <id>http://imanzarrabian.github.io/2015/03/30/2014-01-02-introducing-poole</id>
+   <content type="html">&lt;p&gt;&lt;em&gt;The Strange Case of Dr. Jekyll and Mr. Hyde&lt;/em&gt; tells the story of a lawyer investigating the connection of two persons, Dr. Henry Jekyll and Mr. Edward Hyde. Chief among the novel’s supporting cast is a man by the name of Mr. Poole, Dr. Jekyll’s loyal butler.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Poole is the butler for &lt;a href=&quot;http://jekyllrb.com&quot;&gt;Jekyll&lt;/a&gt;, the static site generator. It’s designed and developed by &lt;a href=&quot;https://twitter.com/mdo&quot;&gt;@mdo&lt;/a&gt; to provide a clear and concise foundational setup for any Jekyll site. It does so by furnishing a full vanilla Jekyll install with example templates, pages, posts, and styles.&lt;/p&gt;
+
+&lt;p&gt;There are currently two themes built on Poole:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;http://hyde.getpoole.com&quot;&gt;Hyde&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;http://lanyon.getpoole.com&quot;&gt;Lanyon&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Learn more and contribute on &lt;a href=&quot;https://github.com/poole&quot;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;whats-included&quot;&gt;What’s included&lt;/h3&gt;
+
+&lt;p&gt;Poole is a streamlined Jekyll site designed and built as a foundation for building more meaningful themes. Poole, and every theme built on it, includes the following:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Complete Jekyll setup included (layouts, config, &lt;a href=&quot;/404.html&quot;&gt;404&lt;/a&gt;, &lt;a href=&quot;/atom.xml&quot;&gt;RSS feed&lt;/a&gt;, posts, and &lt;a href=&quot;/about&quot;&gt;example page&lt;/a&gt;)&lt;/li&gt;
+  &lt;li&gt;Mobile friendly design and development&lt;/li&gt;
+  &lt;li&gt;Easily scalable text and component sizing with &lt;code&gt;rem&lt;/code&gt; units in the CSS&lt;/li&gt;
+  &lt;li&gt;Support for a wide gamut of HTML elements&lt;/li&gt;
+  &lt;li&gt;Related posts (time-based, because Jekyll) below each post&lt;/li&gt;
+  &lt;li&gt;Syntax highlighting, courtesy Pygments (the Python-based code snippet highlighter)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Additional features are available in individual themes.&lt;/p&gt;
+
+&lt;h3 id=&quot;browser-support&quot;&gt;Browser support&lt;/h3&gt;
+
+&lt;p&gt;Poole and its themes are by preference a forward-thinking project. In addition to the latest versions of Chrome, Safari (mobile and desktop), and Firefox, it is only compatible with Internet Explorer 9 and above.&lt;/p&gt;
+
+&lt;h3 id=&quot;download&quot;&gt;Download&lt;/h3&gt;
+
+&lt;p&gt;Poole is developed on and hosted with GitHub. Head to the &lt;a href=&quot;https://github.com/poole/poole&quot;&gt;GitHub repository&lt;/a&gt; for downloads, bug reports, and features requests.&lt;/p&gt;
+
+&lt;p&gt;Thanks!&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Example content</title>
+   <link href="http://imanzarrabian.github.io//2015/03/30/2014-01-01-example-content/"/>
+   <updated>2015-03-30T16:23:30+02:00</updated>
+   <id>http://imanzarrabian.github.io/2015/03/30/2014-01-01-example-content</id>
+   <content type="html">&lt;div class=&quot;message&quot;&gt;
+  Howdy! This is an example blog post that shows several types of HTML content supported in this theme.
+&lt;/div&gt;
+
+&lt;p&gt;Cum sociis natoque penatibus et magnis &lt;a href=&quot;#&quot;&gt;dis parturient montes&lt;/a&gt;, nascetur ridiculus mus. &lt;em&gt;Aenean eu leo quam.&lt;/em&gt; Pellentesque ornare sem lacinia quam venenatis vestibulum. Sed posuere consectetur est at lobortis. Cras mattis consectetur purus sit amet fermentum.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Curabitur blandit tempus porttitor. Nullam quis risus eget urna mollis ornare vel eu leo. Nullam id dolor id nibh ultricies vehicula ut id elit.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Etiam porta &lt;strong&gt;sem malesuada magna&lt;/strong&gt; mollis euismod. Cras mattis consectetur purus sit amet fermentum. Aenean lacinia bibendum nulla sed consectetur.&lt;/p&gt;
+
+&lt;h2 id=&quot;inline-html-elements&quot;&gt;Inline HTML elements&lt;/h2&gt;
+
+&lt;p&gt;HTML defines a long list of available inline tags, a complete list of which can be found on the &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/HTML/Element&quot;&gt;Mozilla Developer Network&lt;/a&gt;.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;strong&gt;To bold text&lt;/strong&gt;, use &lt;code&gt;&amp;lt;strong&amp;gt;&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;em&gt;To italicize text&lt;/em&gt;, use &lt;code&gt;&amp;lt;em&amp;gt;&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Abbreviations, like &lt;abbr title=&quot;HyperText Markup Langage&quot;&gt;HTML&lt;/abbr&gt; should use &lt;code&gt;&amp;lt;abbr&amp;gt;&lt;/code&gt;, with an optional &lt;code&gt;title&lt;/code&gt; attribute for the full phrase.&lt;/li&gt;
+  &lt;li&gt;Citations, like &lt;cite&gt;— Mark otto&lt;/cite&gt;, should use &lt;code&gt;&amp;lt;cite&amp;gt;&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;&lt;del&gt;Deleted&lt;/del&gt; text should use &lt;code&gt;&amp;lt;del&amp;gt;&lt;/code&gt; and &lt;ins&gt;inserted&lt;/ins&gt; text should use &lt;code&gt;&amp;lt;ins&amp;gt;&lt;/code&gt;.&lt;/li&gt;
+  &lt;li&gt;Superscript &lt;sup&gt;text&lt;/sup&gt; uses &lt;code&gt;&amp;lt;sup&amp;gt;&lt;/code&gt; and subscript &lt;sub&gt;text&lt;/sub&gt; uses &lt;code&gt;&amp;lt;sub&amp;gt;&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Most of these elements are styled by browsers with few modifications on our part.&lt;/p&gt;
+
+&lt;h2 id=&quot;heading&quot;&gt;Heading&lt;/h2&gt;
+
+&lt;p&gt;Vivamus sagittis lacus vel augue rutrum faucibus dolor auctor. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.&lt;/p&gt;
+
+&lt;h3 id=&quot;code&quot;&gt;Code&lt;/h3&gt;
+
+&lt;p&gt;Cum sociis natoque penatibus et magnis dis &lt;code&gt;code element&lt;/code&gt; montes, nascetur ridiculus mus.&lt;/p&gt;
+
+&lt;div class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-js&quot; data-lang=&quot;js&quot;&gt;&lt;span class=&quot;c1&quot;&gt;// Example can be run directly in your JavaScript console&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Create a function that takes two arguments and returns the sum of those arguments&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;adder&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Function&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&amp;quot;a&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;b&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&amp;quot;return a + b&amp;quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+
+&lt;span class=&quot;c1&quot;&gt;// Call the function&lt;/span&gt;
+&lt;span class=&quot;nx&quot;&gt;adder&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;c1&quot;&gt;// &amp;gt; 8&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Aenean lacinia bibendum nulla sed consectetur. Etiam porta sem malesuada magna mollis euismod. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa.&lt;/p&gt;
+
+&lt;h3 id=&quot;gists-via-github-pages&quot;&gt;Gists via GitHub Pages&lt;/h3&gt;
+
+&lt;p&gt;Vestibulum id ligula porta felis euismod semper. Nullam quis risus eget urna mollis ornare vel eu leo. Donec sed odio dui.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/5555251.js?file=gist.md&quot;&gt; &lt;/script&gt;
+
+&lt;p&gt;Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Nullam quis risus eget urna mollis ornare vel eu leo. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec sed odio dui. Vestibulum id ligula porta felis euismod semper.&lt;/p&gt;
+
+&lt;h3 id=&quot;lists&quot;&gt;Lists&lt;/h3&gt;
+
+&lt;p&gt;Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean lacinia bibendum nulla sed consectetur. Etiam porta sem malesuada magna mollis euismod. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Praesent commodo cursus magna, vel scelerisque nisl consectetur et.&lt;/li&gt;
+  &lt;li&gt;Donec id elit non mi porta gravida at eget metus.&lt;/li&gt;
+  &lt;li&gt;Nulla vitae elit libero, a pharetra augue.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Donec ullamcorper nulla non metus auctor fringilla. Nulla vitae elit libero, a pharetra augue.&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;Vestibulum id ligula porta felis euismod semper.&lt;/li&gt;
+  &lt;li&gt;Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.&lt;/li&gt;
+  &lt;li&gt;Maecenas sed diam eget risus varius blandit sit amet non magna.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Cras mattis consectetur purus sit amet fermentum. Sed posuere consectetur est at lobortis.&lt;/p&gt;
+
+&lt;dl&gt;
+  &lt;dt&gt;HyperText Markup Language (HTML)&lt;/dt&gt;
+  &lt;dd&gt;The language used to describe and define the content of a Web page&lt;/dd&gt;
+
+  &lt;dt&gt;Cascading Style Sheets (CSS)&lt;/dt&gt;
+  &lt;dd&gt;Used to describe the appearance of Web content&lt;/dd&gt;
+
+  &lt;dt&gt;JavaScript (JS)&lt;/dt&gt;
+  &lt;dd&gt;The programming language used to build advanced Web sites and applications&lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;p&gt;Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nullam quis risus eget urna mollis ornare vel eu leo.&lt;/p&gt;
+
+&lt;h3 id=&quot;images&quot;&gt;Images&lt;/h3&gt;
+
+&lt;p&gt;Quisque consequat sapien eget quam rhoncus, sit amet laoreet diam tempus. Aliquam aliquam metus erat, a pulvinar turpis suscipit at.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://placehold.it/800x400&quot; alt=&quot;placeholder&quot; title=&quot;Large example image&quot; /&gt;
+&lt;img src=&quot;http://placehold.it/400x200&quot; alt=&quot;placeholder&quot; title=&quot;Medium example image&quot; /&gt;
+&lt;img src=&quot;http://placehold.it/200x200&quot; alt=&quot;placeholder&quot; title=&quot;Small example image&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;tables&quot;&gt;Tables&lt;/h3&gt;
+
+&lt;p&gt;Aenean lacinia bibendum nulla sed consectetur. Lorem ipsum dolor sit amet, consectetur adipiscing elit.&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;Name&lt;/th&gt;
+      &lt;th&gt;Upvotes&lt;/th&gt;
+      &lt;th&gt;Downvotes&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tfoot&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Totals&lt;/td&gt;
+      &lt;td&gt;21&lt;/td&gt;
+      &lt;td&gt;23&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tfoot&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Alice&lt;/td&gt;
+      &lt;td&gt;10&lt;/td&gt;
+      &lt;td&gt;11&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Bob&lt;/td&gt;
+      &lt;td&gt;4&lt;/td&gt;
+      &lt;td&gt;3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Charlie&lt;/td&gt;
+      &lt;td&gt;7&lt;/td&gt;
+      &lt;td&gt;9&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;Nullam id dolor id nibh ultricies vehicula ut id elit. Sed posuere consectetur est at lobortis. Nullam quis risus eget urna mollis ornare vel eu leo.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Want to see something else added? &lt;a href=&quot;https://github.com/poole/poole/issues/new&quot;&gt;Open an issue.&lt;/a&gt;&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>What's Jekyll?</title>
+   <link href="http://imanzarrabian.github.io//2015/03/30/2013-12-31-whats-jekyll/"/>
+   <updated>2015-03-30T16:23:30+02:00</updated>
+   <id>http://imanzarrabian.github.io/2015/03/30/2013-12-31-whats-jekyll</id>
+   <content type="html">&lt;p&gt;&lt;a href=&quot;http://jekyllrb.com&quot;&gt;Jekyll&lt;/a&gt; is a static site generator, an open-source tool for creating simple yet powerful websites of all shapes and sizes. From &lt;a href=&quot;https://github.com/jekyll/jekyll/blob/master/README.markdown&quot;&gt;the project’s readme&lt;/a&gt;:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Jekyll is a simple, blog aware, static site generator. It takes a template directory […] and spits out a complete, static website suitable for serving with Apache or your favorite web server. This is also the engine behind GitHub Pages, which you can use to host your project’s page or blog right here from GitHub.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;It’s an immensely useful tool. Find out more by &lt;a href=&quot;https://github.com/jekyll/jekyll&quot;&gt;visiting the project on GitHub&lt;/a&gt;.&lt;/p&gt;
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Please stop displaying No Internet Alert Views!</title>
    <link href="http://imanzarrabian.github.io//2014/07/25/please-stop-displaying-no-internet-alert-views/"/>
    <updated>2014-07-25T00:00:00+02:00</updated>
    <id>http://imanzarrabian.github.io/2014/07/25/please-stop-displaying-no-internet-alert-views</id>
@@ -59,9 +467,8 @@ It can be done using a class method (defined in whatever utility class you want)
 &lt;p&gt;This method analyzes the error and if it’s not a reachability error executes whatever display block is passed in. Otherwise it does nothing and you’ll have to trust the asynchronous mechanism you put in place earlier to display Internet reachability errors to the users.&lt;/p&gt;
 
 &lt;p&gt;If you liked this post, you can
-&amp;lt;a href=”https://twitter.com/intent/tweet?url=http://imanzarrabian.github.io/2014/07/25/please-stop-displaying-no-internet-alert-views/&amp;amp;text=Please stop displaying “No Internet” Alert Views!&amp;amp;via=imanzarrabian”
-   target=”_blank”&amp;gt;
-  share it on Twitter&amp;lt;/a&amp;gt;
+&lt;a href=&quot;https://twitter.com/intent/tweet?url=http://imanzarrabian.github.io/2014/07/25/please-stop-displaying-no-internet-alert-views/&amp;amp;text=Please stop displaying No Internet Alert Views!&amp;amp;via=imanzarrabian&quot; target=&quot;_blank&quot;&gt;
+  share it on Twitter&lt;/a&gt;
 or just
 &lt;a href=&quot;https://twitter.com/imanzarrabian&quot;&gt;
   follow me&lt;/a&gt;!&lt;/p&gt;

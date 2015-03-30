@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Please stop displaying \"No Internet\" Alert Views!"
+title:  "Please stop displaying No Internet Alert Views!"
 ---
 One of the things you still see a lot in iOS apps is the "No Internet" popups displayed whenever an outgoing request fails because network is not reachable anymore. This is poor UX!
 
