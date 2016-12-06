@@ -22,7 +22,7 @@ I like to work with notifications when reachability is concerned because all my 
 The observers of this SKYReachabilityChangedNotification are responsible for toggling on and off the "No Internet" UI based on the reachability changes (Alert Views are Evil, please don't use them).
 These same observers can also disable any send button, display placeholders if needed, handle offline data, stop further outgoing requests or do anything that you need to do whenever Internet is not available.
 
-![Some UI](http://planning.omts.fr/SugarFree/nointernetconnection.png){: .center-image }
+![Some UI](http://imanzarrabian.github.io/assets/connection_down.png){: .center-image }
 
 Now that your app is set for responding to reachability changes with a more subtle UI the only thing left is to silence errors of any pending requests that started before network has dropped. Remember that these are the only requests that need to be taking care of because your view controllers won't allow any other request to start if Internet is no longer available.
 
