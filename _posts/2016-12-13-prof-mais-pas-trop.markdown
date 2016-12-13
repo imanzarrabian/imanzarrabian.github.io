@@ -21,3 +21,5 @@ Je suis persuadé aujourd'hui que, monologuer en utilisant mes plus belles méta
 Du coup, je donne la parole. Et je la donne souvent. J'encourage l'interruption au risque de ne pas aller au bout du cours prévu. Je suis convaincu que comprendre peu est mieux que survoler beaucoup et je suis surpris de voir que dans la plupart des cas, on va même plus loin que le périmètre que je m'étais fixé.
 
 Je trouve que la Web School gagne son pari sur ce point. Faire intervenir des externes qui font de l'enseignement (un domaine dans lequel nous n'innovons probablement plus assez) : un défi. Cette expérience est riche en leçons. La première pour moi étant que je ne suis pas prof.
+
+{% include twitter_plug.html %}
