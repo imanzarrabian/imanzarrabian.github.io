@@ -1,6 +1,6 @@
 ---
 layout: post
-title: MVP : Most Valuable Product
+title: Most Valuable Product
 ---
 
 Une fois n'est pas coutume, j'ai envie de parler boulot.
@@ -34,6 +34,6 @@ Bravo ! Embrassades et félicitations sont de rigueur ! Le MVP a montré que cel
 
 La responsabilité de cet échec est la notre. Développeurs, spécialistes MVP et autre Design Thinkers (Novlangue encore). Nous avons fait l'erreur de réduire le MVP à ses deux premiers critères. Les critères du temps et du coût. Mais quid de la preuve que le concept est bon ? Le concept de notre torréfacteur n'a jamais été de faire chauffer de l'eau ? Et les retours utilisateurs qu'il a eu sur l'app qui faisait chauffer l'eau (si les gens ont bien voulu se donner la peine de commenter un tel exploit) étaient ils pertinents sachant que la cible initiale était celles et ceux qui aiment le café ?
 
-Oui ce coup de gueule contre bon nombre de développeurs est moralisateur et je le revendique. La valeur première d'un MVP est celle de prouver que cela vaut la peine de continuer, encore faut-il ne pas se tromper de concept lors de notre élagage à la tronçonneuse. Je me répète sans doute mais on ne prouve pas que les gens aiment bien les pommes en leur faisait goûter des pépins sous prétexte qu'une fois séchés ils donnent naissance à un pommier.
+Oui ce coup de gueule est moralisateur et je le revendique. La valeur première d'un MVP est celle de prouver que cela vaut la peine de continuer, encore faut-il ne pas se tromper de concept lors de notre élagage à la tronçonneuse. Je me répète sans doute mais on ne prouve pas que les gens aiment bien les pommes en leur faisait goûter des pépins sous prétexte qu'une fois séchés ils donnent naissance à un pommier.
 
 À toutes les étapes de la conception (qui porte bien son nom) et du développement un seul mot doit régner en maître : le concept. Je propose que l'on renomme le MVP en MVC d'ailleurs. Les devs vont être contents.  
