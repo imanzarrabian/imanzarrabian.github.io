@@ -1,6 +1,6 @@
 ---
 layout: post
-title: MVP - Most Valuable Product
+title: Most Valuable Product
 ---
 
 Une fois n'est pas coutume, j'ai envie de parler boulot.
