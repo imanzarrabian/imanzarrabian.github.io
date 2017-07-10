@@ -3,8 +3,6 @@ layout: post
 title: MVP : Most Valuable Product
 ---
 
------
-
 Une fois n'est pas coutume, j'ai envie de parler boulot.
 Dans mon rôle de directeur technique (ce qui signifie en réalité premier développeur arrivé dans la boite) au sein d'un studio tech parisien, j'essaie d'aider les porteurs de projets à réaliser leurs rêves les plus fous mais j'en vois surtout un sacré paquet vivre un cauchemar éveillé.
 Tous ces jeunes (oui parce que la plupart sont jeunes) qu'on appelle startuppers en Novlangue (merci Mathilde Ramadier de m'avoir ouvert l'esprit) arrivent la bouche en coeur et portent toujours une idée révolutionnaire qui va changer le monde à jamais.
