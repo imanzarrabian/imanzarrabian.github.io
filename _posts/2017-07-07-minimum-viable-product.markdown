@@ -11,9 +11,9 @@ Le mot qui emplit le plus souvent leurs discours et le notre (et le mot incontes
 On l'entend si souvent qu'il y a aujourd'hui un commerce pour développer des apps mobiles et un autre pour développer des MVP.
 Tous ces entrepreneurs qui rêvent de changement savent très bien qu'une grande condition de réussite est de courir le plus vite possible vers les terres promises, j'ai nommé l'Appstore et le Google Play Store. Tout le reste c'est du vent, du vent pour changer les choses certes mais du vent. J'aimerai bien savoir ce qu'en pense Klaus Meine tiens de ce vent là.
 
-Munis de ce désire de changement express et armés de leurs économies, les jeunes débarquent dans nos locaux et veulent un MVP.
+Munis de ce désir de changement express et armés de leurs économies, les jeunes débarquent dans nos locaux et veulent un MVP.
 
-Pour un app mobile on dit que l'on développe un MVP quand :
+Pour une app mobile on dit que l'on développe un MVP quand :
 - Le temps de mise à disposition sur le marché de la première version de l'app en est réduit à son minimum.
 - Idem pour les coûts.
 - On est capable de collecter des retours utilisateurs pour devenir encore meilleur.
